@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <#assign base=request.contextPath />
+    <title>告警用户</title>
+    <meta name="keywords" content="告警系统">
+    <meta name="description" content="告警系统">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link href="/css/bootstrap.min14ed.css?v=3.3.6" rel="stylesheet">
+    <link href="/css/font-awesome.min93e3.css?v=4.4.0" rel="stylesheet">
+    <link href="/css/plugins/footable/footable.core.css" rel="stylesheet">
+    <link href="/css/animate.min.css" rel="stylesheet">
+    <link href="/css/style.min862f.css?v=4.1.0" rel="stylesheet">
+    <link href="/css/ui-dialog.css" rel="stylesheet" type="text/css"/>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>添加告警用户</h5>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" class="form-inline" style="display:inline;" id="emailUserForm">
+                        <div class="form-group">
+                            <label for="userName" class="sr-only">用户名称</label>
+                            <input type="text" placeholder="请输入用户名" name="userName" id="userName" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="email" class="sr-only">用户邮箱</label>
+                            <input type="text" placeholder="请输入邮箱" name="email" id="email" class="form-control">
+                        </div>
+                    </form>
+                    <button class="btn btn-white" type="button" style="margin-top:5px;" onclick="addEmailUser()">添加
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>告警用户列表</h5>
+                    <div class="ibox-content">
+                        <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="8">
+                            <thead>
+                            <tr>
+                                <th>用户名称</th>
+                                <th>用户邮箱</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <#if code==500>
+                                <div class="center">${result!''}</div>
+                            </#if>
+                            <#if code==200>
+                                <tbody>
+                                <#if emailUsers??>
+                                    <#list emailUsers as emailUser>
+                                        <tr>
+                                            <td>${emailUser.userName}</td>
+                                            <td>${emailUser.email}</td>
+                                            <td>${emailUser.createTime?string("yyyy-MM-dd HH:mm:ss")}</td>
+                                            <td>
+                                                <#if emailUser.status =1>
+                                                    <button onclick="updateEmailUser('${emailUser.id}')"><i
+                                                            class="fa fa-check text-navy"></i> 编辑
+                                                    </button>
+                                                    <button onclick="deleteEmailUser('${emailUser.id}')"><i
+                                                            class="fa fa-check text-navy"></i> 删除
+                                                    </button>
+                                                </#if>
+                                                <#if emailUser.status =0>
+                                                    <button onclick="activeEmailUser('${emailUser.id}')"><i
+                                                            class="fa fa-check text-navy"></i>已删除,激活
+                                                    </button>
+                                                </#if>
+                                            </td>
+                                        </tr>
+                                    </#list>
+                                </#if>
+                                </tbody>
+                            </#if>
+                            <tfoot>
+                            <tr>
+                                <td colspan="5">
+                                    <ul class="pagination pull-right"></ul>
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/js/jquery.min.js?v=2.1.4"></script>
+<script src="/js/bootstrap.min.js?v=3.3.6"></script>
+<script src="/js/plugins/footable/footable.all.min.js"></script>
+<script src="/js/content.min.js?v=1.0.0"></script>
+<script src="/js/dialog-min.js"></script>
+<script src="/js/sessionOut.js"></script>
+<script>
+    $(function () {
+    });
+
+    /**
+     * 激活告警用户
+     * @param id
+     */
+    function activeEmailUser(id) {
+        var url = "/email/active/" + id;
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '激活成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href = '/email/emailusers';
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '激活失败',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+    //添加告警用户
+    function addEmailUser() {
+        $.ajax({
+            type: 'post',
+            url: '/email/add',
+            data: $("#emailUserForm").serialize(),
+            async: false,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '添加成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href = '/email/emailusers';
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '添加失败',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+    //更新告警用户信息
+    function updateEmailUser(id) {
+        var url = "/email/query/" + id;
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                var userInfo = dialog({
+                    title: '更新用户',
+                    content: '<form role="form" class="form-horizontal" id="userInfoForm">' +
+                    '<div class="form-group">' +
+                    '  <label for="userName" class="col-sm-4 control-label">用户名称</label>' +
+                    '  <div class="col-sm-7">' +
+                    '    <input id="id" name="id" type="hidden" value="' + resp.data.id + '">' +
+                    '    <input type="text" placeholder="请输入邮箱名称" name="userName" id="userName" class="form-control" value="' + resp.data.userName + '">' +
+                    '  </div>' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                    '   <label for="email" class="col-sm-4 control-label">用户邮箱</label>' +
+                    '   <div class="col-sm-7">' +
+                    '     <input type="text" placeholder="请输入邮箱密码" name="email" id="email" class="form-control" value="' + resp.data.email + '">' +
+                    '   </div>' +
+                    '</div>' +
+                    '</form>',
+                    width: 350,
+                    height: 100,
+                    ok: function () {
+                        $.ajax({
+                            type: 'post',
+                            url: '/email/update',
+                            data: $("#userInfoForm").serialize(),
+                            success: function (resp) {
+                                if (resp.code == 200) {
+                                    var success = dialog({
+                                        title: '更新成功',
+                                        content: resp.msg,
+                                        width: '200px',
+                                        height: '30px',
+                                        ok: function () {
+                                            window.location.href = '/email/emailusers';
+                                            return true;
+                                        }
+                                    });
+                                    success.show();
+                                } else {
+                                    var error = dialog({
+                                        title: '更新失败',
+                                        content: resp.msg,
+                                        width: '200px',
+                                        height: '30px',
+                                        ok: function () {
+                                            return true;
+                                        }
+                                    });
+                                    error.show();
+                                }
+                            }
+                        });
+                    }
+                });
+                userInfo.show();
+            }
+        });
+    }
+
+    //删除告警用户
+    function deleteEmailUser(id) {
+        var url = "/email/delete/" + id;
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '删除成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href = '/email/emailusers';
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '删除失败',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>

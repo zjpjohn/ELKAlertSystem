@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alert.mapper.BusinessLineMapper">
+
+    <resultMap id="BusinessLineMap" type="com.alert.domain.BusinessLine">
+        <id column="id" property="id"/>
+        <result column="tag" property="tag"/>
+        <result column="business_name" property="businessName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <select id="getBusinessLineAll" resultMap="BusinessLineMap">
+        SELECT id,tag,business_name,create_time,update_time,status
+        FROM  business_line
+     </select>
+
+    <select id="getBusinessLineById" parameterType="java.lang.Integer" resultMap="BusinessLineMap">
+        SELECT id,tag,business_name,create_time,update_time,status
+        FROM  business_line
+        WHERE  id=#{id}
+    </select>
+
+    <select id="getBusinessLineByName" parameterType="java.lang.String" resultMap="BusinessLineMap">
+        SELECT id,tag,business_name,create_time,update_time,status
+        FROM  business_line
+        WHERE  business_name=#{businessName}
+    </select>
+
+    <insert id="addBusinessLine" parameterType="com.alert.domain.BusinessLine" useGeneratedKeys="true"
+            keyProperty="id">
+       INSERT INTO business_line(tag,business_name,create_time,update_time,status)
+       VALUES (#{tag},#{businessName},CURRENT_TIMESTAMP ,CURRENT_TIMESTAMP ,1)
+    </insert>
+
+    <update id="updateBusinessLine" parameterType="com.alert.domain.BusinessLine">
+        UPDATE business_line SET
+        <if test="businessName!=null and businessName!=''">
+            business_name=#{businessName},
+        </if>
+        update_time = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteBusinessLine" parameterType="java.lang.Integer">
+        UPDATE business_line SET
+        status = 0
+        WHERE id = #{id}
+    </update>
+
+    <!-- 激活已经删除的业务线-->
+    <update id="activeBusinessLine" parameterType="java.lang.Integer">
+        UPDATE business_line SET
+        status = 1
+        WHERE id = #{id} AND status = 0
+    </update>
+
+    <!--查询用户已经绑定的业务线 -->
+    <select id="getBindBusinessLines" parameterType="java.lang.Integer" resultMap="BusinessLineMap">
+        SELECT bl.id,bl.tag,bl.business_name,bl.create_time,bl.update_time,bl.status
+        FROM  business_line bl,business_user_relation bur
+        WHERE bur.user_id = #{userId}
+        AND bl.id=bur.business_id
+    </select>
+
+    <!-- 查询用户未绑定的业务线-->
+    <select id="getUnbindBusinessLines" parameterType="java.lang.Integer" resultMap="BusinessLineMap">
+        SELECT id,tag,business_name,create_time,update_time,status
+        FROM  business_line
+        WHERE id NOT IN (
+          SELECT bl.id
+          FROM  business_line bl,business_user_relation bur
+          WHERE bur.user_id = #{userId}
+          AND bl.id=bur.business_id
+        )
+    </select>
+</mapper>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <#assign base=request.contextPath />
+    <title>告警规则页面</title>
+    <meta name="keywords" content="告警系统">
+    <meta name="description" content="告警系统">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link href="/css/bootstrap.min14ed.css?v=3.3.6" rel="stylesheet">
+    <link href="/css/font-awesome.min93e3.css?v=4.4.0" rel="stylesheet">
+    <link href="/css/plugins/footable/footable.core.css" rel="stylesheet">
+    <link href="/css/animate.min.css" rel="stylesheet">
+    <link href="/css/style.min862f.css?v=4.1.0" rel="stylesheet">
+    <link href="/css/ui-dialog.css" rel="stylesheet" type="text/css"/>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>添加字段规则</h5>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" class="form-inline" style="display:inline;" id="fieldRuleForm">
+                        <div class="form-group">
+                            <label for="ruleName" class="sr-only">字段规则名</label>
+                            <input type="text" placeholder="请输入规则名" name="ruleName" id="ruleName" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="ruleValue" class="sr-only">字段规则值</label>
+                            <input type="text" placeholder="请输入规则值" name="ruleValue" id="ruleValue"
+                                   class="form-control">
+                        </div>
+                        <div class="form-group" style="height:34px;">
+                            <label for="businessLine" class="sr-only">业务线</label>
+                            <select class="form-control m-b" name="businessId" id="businessLine">
+                                <option>-----业务线-----</option>
+                            </select>
+                        </div>
+                    </form>
+                    <button class="btn btn-white" type="button" style="margin-top:5px;" onclick="addFieldRule()">添加
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>添加频率规则</h5>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" class="form-inline" style="display:inline;" id="rateRuleForm">
+                        <div class="form-group">
+                            <label for="rateExpress" class="sr-only">异常(URI)名称</label>
+                            <input type="text" placeholder="请输入异常(URI)名称" name="rateExpress" id="rateExpress"
+                                   class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="rateThresh" class="sr-only">阈值</label>
+                            <input type="text" placeholder="请输入阈值" name="rateThresh" id="rateThresh"
+                                   class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="interval" class="sr-only">间隔</label>
+                            <input type="text" placeholder="请输入时间间隔" name="interval" id="interval" class="form-control">
+                        </div>
+                        <div class="form-group" style="height:34px;">
+                            <label for="rateBusiness" class="sr-only">业务线</label>
+                            <select class="form-control m-b" name="businessId" id="rateBusiness">
+                                <option>-----业务线-----</option>
+                            </select>
+                        </div>
+                    </form>
+                    <button class="btn btn-white" type="button" style="margin-top:5px;" onclick="addRateRule()">添加
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>告警规则信息</h5>
+                    <div class="ibox-content">
+                        <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="8">
+                            <thead>
+                            <tr>
+                                <th data-toggle="true">业务线</th>
+                                <th>字段规则名</th>
+                                <th>字段规则值</th>
+                                <th data-hide="all">频率规则</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <#if code==500>
+                                <div class="center">${result!''}</div>
+                            </#if>
+                            <#if code==200>
+                                <tbody>
+                                <#if ruleVos??>
+                                    <#list ruleVos as ruleVo>
+                                        <tr>
+                                            <td>${ruleVo.businessName!''}</td>
+                                            <td>${ruleVo.fieldRuleVo.ruleName!''}</td>
+                                            <td>${ruleVo.fieldRuleVo.ruleValue!''}</td>
+                                            <#if ruleVo.rateRuleVo??>
+                                                <td>
+                                                    <#if (ruleVo.rateRuleVo?size>0)>
+                                                        <table class="table table-stripped" data-page-size="8"
+                                                               data-filter=#filter>
+                                                            <thead>
+                                                            <tr>
+                                                                <th>业务线</th>
+                                                                <th>异常(URI)名称</th>
+                                                                <th>频率阈值</th>
+                                                                <th>时间间隔</th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody id="rateRuleVo">
+
+                                                            <#list ruleVo.rateRuleVo as rateRule>
+                                                                <tr class="gradeX">
+                                                                    <td class="center">
+                                                                        ${rateRule.businessName}
+                                                                    </td>
+                                                                    <td class="center">${rateRule.rateExpress}</td>
+                                                                    <td class="center">${rateRule.rateThresh}</td>
+                                                                    <td class="center">${rateRule.interval}</td>
+                                                                </tr>
+                                                            </#list>
+                                                            </tbody>
+                                                        </table>
+                                                    </#if>
+                                                </td>
+                                            </#if>
+                                            <td><button onclick="editInfo('${ruleVo.fieldRuleVo.businessId}')"><i
+                                                    class="fa fa-check text-navy"></i> 编辑</button>
+                                            </td>
+                                        </tr>
+                                    </#list>
+                                </#if>
+                                </tbody>
+                            </#if>
+                            <tfoot>
+                            <tr>
+                                <td colspan="5">
+                                    <ul class="pagination pull-right"></ul>
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/js/jquery.min.js?v=2.1.4"></script>
+<script src="/js/bootstrap.min.js?v=3.3.6"></script>
+<script src="/js/plugins/footable/footable.all.min.js"></script>
+<script src="/js/content.min.js?v=1.0.0"></script>
+<script src="/js/dialog-min.js"></script>
+<script src="/js/sessionOut.js"></script>
+<script>
+    $(function () {
+        $(".footable").footable();
+        //加载业务线数据
+        loadBusinessLine($("#businessLine"));
+        loadBusinessLine($("#rateBusiness"));
+    });
+
+    //加载业务线数据
+    function loadBusinessLine(select) {
+        var url = "/business/select";//获取业务线数据URL
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    for (var i = 0; i < resp.data.length; i++) {
+                        var businessData = resp.data[i];
+                        select.append("<option value='" + businessData.id +
+                                "'>" + businessData.businessName + "</option>"
+                        )
+                    }
+                } else if (resp.code == 500) {
+                    //加载失败
+                }
+            }
+        });
+    }
+
+    //添加频率规则
+    function addRateRule() {
+        $.ajax({
+            type: 'post',
+            url: '/rule/addRateRule',
+            data: $("#rateRuleForm").serialize(),
+            async: false,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '添加成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href = "/rule/query";
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '添加失败',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+
+    //添加字段过滤规则
+    function addFieldRule() {
+        $.ajax({
+            type: 'post',
+            url: '/rule/addFieldRule',
+            async: false,
+            data: $("#fieldRuleForm").serialize(),
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '添加成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href = "/rule/query";
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '添加失败',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+
+    /**
+     * 更新页面跳转
+     * @param businessId
+     */
+    function editInfo(businessId) {
+        window.location.href = "/rule/edit/" + businessId;
+    }
+</script>
+</body>
+</html>

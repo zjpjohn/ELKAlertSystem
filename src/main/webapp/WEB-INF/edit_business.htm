@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <#assign base=request.contextPath />
+    <title>配置业务线</title>
+    <meta name="keywords" content="告警系统">
+    <meta name="description" content="告警系统">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link href="/css/bootstrap.min14ed.css?v=3.3.6" rel="stylesheet">
+    <link href="/css/font-awesome.min93e3.css?v=4.4.0" rel="stylesheet">
+    <link href="/css/plugins/footable/footable.core.css" rel="stylesheet">
+    <link href="/css/animate.min.css" rel="stylesheet">
+    <link href="/css/style.min862f.css?v=4.1.0" rel="stylesheet">
+    <link href="/css/ui-dialog.css" rel="stylesheet" type="text/css"/>
+
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <input type="hidden" name="businessId" id="businessId" value="${businessLine.id}">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>绑定告警用户</h5>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" class="form-inline" style="display:inline;" id="bindingUserForm">
+                        <div class="form-group">
+                            <label for="businessUName" class="sr-only">业务线名称</label>
+                            <input type="text" name="businessName" id="businessUName" style="border-style: none"
+                                   class="form-control" value="${businessLine.businessName}" disabled>
+                        </div>
+                        <div class="form-group" style="height:34px;">
+                            <label for="futureBindingUser" class="sr-only">待绑定用户</label>
+                            <select class="form-control m-b" name="userId" id="futureBindingUser">
+                                <option>---待绑定用户---</option>
+                            </select>
+                        </div>
+                    </form>
+                    <button class="btn btn-white" type="button" style="margin-top:5px;" onclick="bindingUser()">绑定
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>解绑告警用户</h5>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" class="form-inline" style="display:inline;" id="unbindingUserForm">
+                        <div class="form-group">
+                            <label for="businessUnName" class="sr-only">业务线名称</label>
+                            <input type="text" id="businessUnName" name="businessName" style="border-style: none"
+                                   class="form-control"
+                                   value="${businessLine.businessName}" disabled>
+                        </div>
+                        <div class="form-group" style="height:34px;">
+                            <label for="bindingUser" class="sr-only">已绑定用户</label>
+                            <select class="form-control m-b" name="userId" id="bindingUser">
+                                <option>---已绑定用户---</option>
+                            </select>
+                        </div>
+                    </form>
+                    <button class="btn btn-white" type="button" style="margin-top:5px;" onclick="unbindingUser()">解绑
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>绑定邮件模板</h5>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" class="form-inline" style="display:inline;" id="bindingTemplateForm">
+                        <div class="form-group">
+                            <label for="bindingTemplate" class="sr-only">业务线名称</label>
+                            <input type="text" id="bindingTemplate" name="businessName" style="border-style: none"
+                                   class="form-control" value="${businessLine.businessName}" disabled>
+                        </div>
+                        <div class="form-group" style="height:34px;">
+                            <label for="bindTemplateInfo" class="sr-only">待绑定模板</label>
+                            <select class="form-control m-b" name="templateId" id="bindTemplateInfo">
+                                <option>---待绑定模板---</option>
+                            </select>
+                        </div>
+                    </form>
+                    <button class="btn btn-white" type="button" style="margin-top:5px;" onclick="bindTemplate()">绑定
+                    </button>
+                    <button class="btn btn-white" type="button" style="margin-top:5px;"
+                            onclick="bindAndActiveTemplate()">绑定并启用
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>解绑邮件模板</h5>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" class="form-inline" style="display:inline;" id="rateRuleForm">
+                        <div class="form-group">
+                            <label for="unbindingTemplate" class="sr-only">异常名称</label>
+                            <input type="text" id="unbindingTemplate" name="businessName" style="border-style: none"
+                                   class="form-control" value="${businessLine.businessName}" disabled>
+                        </div>
+                        <div class="form-group" style="height:34px;">
+                            <label for="unbindTemplateInfo" class="sr-only">绑定的模板</label>
+                            <select class="form-control m-b" name="templateId" id="unbindTemplateInfo">
+                                <option>---绑定的模板---</option>
+                            </select>
+                        </div>
+                    </form>
+                    <button class="btn btn-white" type="button" style="margin-top:5px;" onclick="activeTemplate()">启用
+                    </button>
+                    <button class="btn btn-white" type="button" style="margin-top:5px;" onclick="unbindTemplate()">解绑
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/js/jquery.min.js?v=2.1.4"></script>
+<script src="/js/bootstrap.min.js?v=3.3.6"></script>
+<script src="/js/plugins/footable/footable.all.min.js"></script>
+<script src="/js/content.min.js?v=1.0.0"></script>
+<script src="/js/dialog-min.js"></script>
+<script src="/js/sessionOut.js"></script>
+<script>
+    $(function () {
+        var businessId = $("#businessId").val();
+        loadSelectInfo($("#futureBindingUser"), "/email/bindOr/" + businessId + "/1", "emailUser");
+        loadSelectInfo($("#bindingUser"), "/email/bindOr/" + businessId + "/0", "emailUser");
+        loadSelectInfo($("#bindTemplateInfo"), "/template/bindOrUnbindTemplate/" + businessId + "/1", "emailTemplate");
+        loadSelectInfo($("#unbindTemplateInfo"), "/template/bindOrUnbindTemplate/" + businessId + "/0", "emailTemplate");
+    });
+
+    //加载告警用户
+    function loadSelectInfo(select, url, type) {
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    if (type == "emailUser") {
+                        for (var i = 0; i < resp.data.length; i++) {
+                            var businessData = resp.data[i];
+                            select.append("<option value='" + businessData.id +
+                                    "'>" + businessData.userName + "</option>"
+                            )
+                        }
+                    } else {
+                        for (var i = 0; i < resp.data.length; i++) {
+                            var businessData = resp.data[i];
+                            select.append("<option value='" + businessData.id +
+                                    "'>" + businessData.templateName + "</option>"
+                            )
+                        }
+                    }
+                } else if (resp.code == 500) {
+                    //加载失败
+                }
+            }
+        });
+    }
+
+    //解除绑定告警用户
+    function unbindingUser() {
+        var businessId = $("#businessId").val();
+        var userId = $("#bindingUser option:selected").val();
+        var url = "/email/unbinding/" + userId + "/" + businessId;
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '解绑成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href='/business/edit/'+businessId;
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '解绑失败',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+
+    //绑定告警用户
+    function bindingUser() {
+        var businessId = $("#businessId").val();
+        var userId = $("#futureBindingUser option:selected").val();
+        var url = "/email/binding/" + userId + "/" + businessId;
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '绑定成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href='/business/edit/'+businessId;
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '绑定失败',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+
+    //绑定邮件模板
+    function bindTemplate() {
+        var businessId = $("#businessId").val();
+        var templateId = $("#bindTemplateInfo option:selected").val();
+        var url = "/template/binding/0/" + templateId + "/" + businessId;
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '绑定成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href='/business/edit/'+businessId;
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '绑定失败',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+
+    //绑定并使用邮件模板
+    function bindAndActiveTemplate() {
+        var businessId = $("#businessId").val();
+        var templateId = $("#bindTemplateInfo option:selected").val();
+        var url = "/template/binding/2/" + templateId + "/" + businessId;
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '绑定并启用成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href='/business/edit/'+businessId;
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '绑定并启用成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+
+    //使用邮件模板
+    function activeTemplate() {
+        var businessId = $("#businessId").val();
+        var templateId = $("#unbindTemplateInfo option:selected").val();
+        var url = "/template/binding/1/" + templateId + "/" + businessId;
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '启用成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href='/business/edit/'+businessId;
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '启用成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+
+    //解除绑定邮件模板
+    function unbindTemplate() {
+        var businessId = $("#businessId").val();
+        var templateId = $("#unbindTemplateInfo option:selected").val();
+        var url = "/template/unbinding/" + templateId + "/" + businessId;
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '绑定成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href='/business/edit/'+businessId;
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '绑定成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>

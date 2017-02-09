@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alert.mapper.EmailTemplateMapper">
+
+    <resultMap id="EmailTemplateMap" type="com.alert.domain.EmailTemplate">
+        <id column="id" property="id"/>
+        <result column="template_name" property="templateName"/>
+        <result column="template_value" property="templateValue"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <insert id="addEmailTemplate" parameterType="com.alert.domain.EmailTemplate" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO email_template(template_name,template_value,create_time,update_time,status)
+        VALUES (#{templateName},#{templateValue},CURRENT_TIMESTAMP ,CURRENT_TIMESTAMP ,1)
+    </insert>
+
+    <update id="updateEmailTemplate" parameterType="com.alert.domain.EmailTemplate">
+        UPDATE email_template
+        SET
+        <if test="templateName!=null and templateName!=''">
+            template_name=#{templateName},
+        </if>
+        <if test="templateValue!=null and templateValue!=''">
+            template_value=#{templateValue},
+        </if>
+        update_time=CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteEmailTemplate" parameterType="java.lang.Integer">
+         UPDATE email_template SET
+         status=0,update_time=CURRENT_TIMESTAMP
+         WHERE id=#{templateId};
+         DELETE FROM business_template_relation WHERE template_id=#{templateId};
+    </update>
+
+    <!--激活已经删除的邮件模板 -->
+    <update id="activeTemplate" parameterType="java.lang.Integer">
+        UPDATE email_template SET
+         status=1,update_time=CURRENT_TIMESTAMP
+         WHERE id=#{id} AND status = 0
+    </update>
+
+    <update id="activeEmailTemplate" parameterType="java.util.Map">
+          UPDATE business_template_relation
+          SET active = 0
+          WHERE business_id = #{businessId};
+          UPDATE business_template_relation
+          SET active = 1
+          WHERE business_id = #{businessId} AND  template_id=#{templateId};
+    </update>
+
+    <update id="addAndActiveEmailTemplate" parameterType="java.util.Map">
+        <!-- 只绑定邮件模板-->
+        <if test="status==0">
+            INSERT INTO business_template_relation(business_id,template_id,active)
+            VALUES (#{businessId},#{templateId},0);
+        </if>
+        <!-- 只启用邮件模板-->
+        <if test="status==1">
+            UPDATE business_template_relation
+            SET active = 0
+            WHERE business_id = #{businessId};
+            UPDATE business_template_relation
+            SET active = 1
+            WHERE business_id = #{businessId} AND template_id=#{templateId};
+        </if>
+        <!-- 绑定 并启用邮件模板-->
+        <if test="status==2">
+            INSERT INTO business_template_relation(business_id,template_id,active)
+            VALUES (#{businessId},#{templateId},1);
+            UPDATE business_template_relation
+            SET active = 0
+            WHERE business_id = #{businessId} AND template_id !=#{templateId};
+        </if>
+    </update>
+
+    <insert id="addMessageEmailTemplate" parameterType="java.util.Map">
+        INSERT INTO business_template_relation(business_id,template_id,active)
+         VALUES (#{businessId},#{templateId},0)
+    </insert>
+
+    <select id="getEmailTemplateById" parameterType="java.lang.Integer" resultMap="EmailTemplateMap">
+        SELECT id,template_name,template_value,create_time,update_time,status
+        FROM email_template
+        WHERE  id=#{id}
+    </select>
+
+    <select id="getEmailTemplateByName" parameterType="java.lang.String" resultMap="EmailTemplateMap">
+        SELECT id,template_name,template_value,create_time,update_time,status
+        FROM email_template
+        WHERE  template_name = #{templateName}
+    </select>
+
+    <select id="getActiveTemplateByTag" parameterType="java.lang.String" resultMap="EmailTemplateMap">
+        SELECT t.id,t.template_name,t.template_value,t.create_time,t.update_time,t.status
+        FROM email_template t,business_line m,business_template_relation mt
+        WHERE m.business_name=#{businessName}
+        AND m.id = mt.business_id
+        AND mt.template_id = t.id
+        AND mt.active = 1
+    </select>
+
+    <select id="getActiveTemplateByBusinessId" parameterType="java.util.Map" resultMap="EmailTemplateMap">
+        SELECT t.id,t.template_name,t.template_value,t.create_time,t.update_time,t.status
+        FROM email_template t,business_template_relation mt
+        WHERE mt.business_id = #{businessId}
+        AND mt.template_id = #{templateId}
+        AND mt.active = 1
+        AND mt.template_id = t.id
+    </select>
+
+    <select id="getTemplateByBusinessName" parameterType="java.lang.String" resultMap="EmailTemplateMap">
+        SELECT t.id,t.template_name,t.template_value,t.create_time,t.update_time,t.status
+        FROM email_template t,business_line m,business_template_relation mt
+        WHERE m.business_name=#{businessName}
+        AND m.id = mt.business_id
+        AND mt.template_id = t.id
+    </select>
+
+    <select id="getEmailTemplateAll" resultMap="EmailTemplateMap">
+        SELECT id,template_name,template_value,create_time,update_time,status
+        FROM email_template
+    </select>
+
+    <select id="getBindTemplate" parameterType="java.lang.Integer" resultMap="EmailTemplateMap">
+        SELECT t.id,t.template_name,t.template_value,t.create_time,t.update_time,t.status
+        FROM email_template t,business_template_relation mt
+        WHERE mt.business_id = #{businessId}
+        AND mt.template_id = t.id
+    </select>
+
+    <select id="getUnbindTemplate" parameterType="java.lang.Integer" resultMap="EmailTemplateMap">
+        SELECT id,template_name,template_value,create_time,update_time,status
+        FROM email_template
+        WHERE id NOT IN (
+           SELECT t.id
+           FROM email_template t,business_template_relation mt
+           WHERE mt.business_id = #{businessId}
+           AND mt.template_id = t.id
+        )
+        AND status=1
+    </select>
+
+    <delete id="unbindingTemplate" parameterType="java.util.Map">
+        DELETE FROM business_template_relation
+        WHERE business_id = #{businessId} AND  template_id = #{templateId}
+    </delete>
+</mapper>
+
+
+
+
+
+
+
+
+

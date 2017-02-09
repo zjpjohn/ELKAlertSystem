@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alert.mapper.AlertRuleMapper">
+
+    <resultMap id="FieldRuleMap" type="com.alert.domain.AlertFieldRule">
+        <id column="id" property="id"/>
+        <result column="rule_name" property="ruleName"/>
+        <result column="rule_value" property="ruleValue"/>
+        <result column="business_id" property="businessId"/>
+        <result column="business_name" property="businessName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="active" property="active"/>
+    </resultMap>
+
+    <resultMap id="RateRuleMap" type="com.alert.domain.AlertRateRule">
+        <id column="id" property="id"/>
+        <result column="business_id" property="businessId"/>
+        <result column="business_name" property="businessName"/>
+        <result column="rate_thresh" property="rateThresh"/>
+        <result column="rate_interval" property="interval"/>
+        <result column="rate_express" property="rateExpress"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="active" property="active"/>
+    </resultMap>
+
+    <select id="getFieldRuleById" parameterType="java.lang.Integer" resultMap="FieldRuleMap">
+        SELECT fr.id,fr.rule_name,fr.rule_value,fr.business_id,bl.business_name,fr.create_time,fr.update_time,fr.active
+        FROM field_rule fr,business_line bl
+        WHERE fr.id = #{id}
+        AND fr.business_id = bl.id
+    </select>
+
+    <select id="getFieldRuleAll" resultMap="FieldRuleMap">
+        SELECT fr.id,fr.rule_name,fr.rule_value,fr.business_id,bl.business_name,fr.create_time,fr.update_time,fr.active
+        FROM field_rule fr,business_line bl
+        WHERE fr.business_id = bl.id
+    </select>
+
+    <select id="getFieldRuleByName" parameterType="java.lang.String" resultMap="FieldRuleMap">
+        SELECT fr.id,fr.rule_name,fr.rule_value,fr.business_id,bl.business_name,fr.create_time,fr.update_time,fr.active
+        FROM field_rule fr,business_line bl
+        WHERE fr.rule_name = #{ruleName}
+        AND fr.business_id = bl.id
+    </select>
+
+    <select id="getFieldRuleByLine" parameterType="java.lang.Integer" resultMap="FieldRuleMap">
+        SELECT fr.id id,fr.rule_name rule_name,fr.rule_value rule_value,fr.business_id business_id,
+        bl.business_name business_name,fr.create_time create_time,fr.update_time update_time,fr.active active
+        FROM field_rule fr,business_line bl
+        WHERE fr.business_id = #{businessId}
+        AND fr.business_id = bl.id
+    </select>
+
+    <select id="getRateRuleById" parameterType="java.lang.Integer" resultMap="RateRuleMap">
+        SELECT rr.id,rr.business_id,bl.business_name,rr.rate_thresh,rr.rate_interval,
+        rr.rate_express,rr.create_time,rr.update_time,rr.active
+        FROM rate_rule rr,business_line bl
+        WHERE rr.id=#{id}
+        AND  rr.business_id=bl.id
+    </select>
+
+    <select id="getRateRuleAll" resultMap="RateRuleMap">
+        SELECT rr.id,rr.business_id,bl.business_name,rr.rate_thresh,rr.rate_interval,
+        rr.rate_express,rr.create_time,rr.update_time,rr.active
+        FROM rate_rule rr,business_line bl
+        WHERE rr.business_id=bl.id
+    </select>
+
+    <select id="getRateRuleByExpressLine" parameterType="java.util.Map" resultMap="RateRuleMap">
+        SELECT rr.id,rr.business_id,bl.business_name,rr.rate_thresh,rr.rate_interval,
+        rr.rate_express,rr.create_time,rr.update_time,rr.active
+        FROM rate_rule rr,business_line bl
+        WHERE rr.rate_express=#{rateExpress}
+        AND rr.business_name = #{businessName}
+        AND  rr.business_id=bl.id
+    </select>
+
+    <select id="getRateRuleByLine" parameterType="java.lang.Integer" resultMap="RateRuleMap">
+        SELECT rr.id,rr.business_id,bl.business_name,rr.rate_thresh,rr.rate_interval,
+        rr.rate_express,rr.create_time,rr.update_time,rr.active
+        FROM rate_rule rr,business_line bl
+        WHERE rr.business_id=#{businessId}
+        AND  rr.business_id=bl.id
+    </select>
+
+    <insert id="addFieldRule" parameterType="com.alert.domain.AlertFieldRule" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO field_rule(rule_name,rule_value,business_id,create_time,update_time,active)
+        VALUES (#{ruleName},#{ruleValue},#{businessId},CURRENT_DATE ,CURRENT_DATE ,1)
+    </insert>
+
+    <update id="updateFieldRule" parameterType="com.alert.domain.AlertFieldRule">
+        UPDATE field_rule
+        SET
+        <if test="ruleName!=null and ruleName!=''">
+            rule_name = #{ruleName},
+        </if>
+        <if test="ruleValue!=null and ruleValue!=''">
+            rule_value = #{ruleValue},
+        </if>
+        update_time = CURRENT_DATE
+        WHERE id=#{id}
+    </update>
+
+    <insert id="addRateRule" parameterType="com.alert.domain.AlertRateRule" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO rate_rule(business_id,rate_thresh,rate_interval,rate_express,create_time,update_time,active)
+        VALUES (#{businessId},#{rateThresh},#{interval},#{rateExpress},CURRENT_DATE ,CURRENT_DATE ,1)
+    </insert>
+
+    <insert id="addRateRules" parameterType="java.util.List">
+        INSERT INTO rate_rule(business_id,rate_thresh,rate_interval,rate_express,create_time,update_time,active)
+        <foreach collection="list" item="rateRule" index="i" separator=",">
+            (#{rateRule.businessId},#{rateRule.rateThresh},#{rateRule.interval},#{rateRule.rateExpress},
+            CURRENT_DATE ,CURRENT_DATE ,1)
+        </foreach>
+    </insert>
+
+    <update id="updateRateRule" parameterType="com.alert.domain.AlertRateRule">
+        UPDATE rate_rule
+        SET
+        <if test="rateThresh!=null and rateThresh!=''">
+            rate_thresh = #{rateThresh},
+        </if>
+        <if test="interval!=null and interval>=0">
+            rate_interval = #{interval},
+        </if>
+        <if test="rateExpress!=null and rateExpress!=''">
+            rate_express=#{rateExpress},
+        </if>
+        update_time = CURRENT_DATE
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteFieldRule" parameterType="java.lang.Integer">
+        UPDATE field_rule SET active = 0 WHERE id=#{id}
+    </update>
+
+    <update id="deleteRateRule" parameterType="java.lang.Integer">
+        UPDATE rate_rule SET active = 0 WHERE id=#{id}
+    </update>
+
+    <update id="activeFieldRule" parameterType="java.lang.Integer">
+        UPDATE field_rule SET active = 1 WHERE id=#{id} AND active=0
+    </update>
+
+    <update id="activeRateRule" parameterType="java.lang.Integer">
+        UPDATE rate_rule SET active = 1 WHERE id=#{id} AND active=0
+    </update>
+</mapper>

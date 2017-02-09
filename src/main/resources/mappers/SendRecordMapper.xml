@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alert.mapper.SendRecordMapper">
+
+    <resultMap id="SendRecordMap" type="com.alert.domain.SendRecord">
+        <id column="id" property="id"/>
+        <result column="send_email" property="sendEmail"/>
+        <result column="send_time" property="sendTime"/>
+        <result column="send_content" property="sendContent"/>
+        <result column="send_type" property="sendType"/>
+        <result column="send_user" property="sendUser"/>
+    </resultMap>
+
+    <insert id="addEmailSendRecord" parameterType="com.alert.domain.SendRecord" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO email_send_record(send_email,send_time,send_content,send_type,send_user)
+        VALUES (#{sendEmail},#{sendTime},#{sendContent},#{sendType},#{sendUser})
+    </insert>
+
+    <insert id="addEmailSendRecords" parameterType="java.util.List">
+        INSERT INTO email_send_record(send_email,send_time,send_content,send_type,send_user)
+        VALUES
+        <foreach collection="list" item="sendRecord" separator="," index="index">
+            (#{sendRecord.sendEmail},#{sendRecord.sendTime},#{sendRecord.sendContent},#{sendRecord.sendType},#{sendRecord.sendUser})
+        </foreach>
+    </insert>
+
+    <select id="getSendRecordByType" parameterType="java.lang.String" resultMap="SendRecordMap">
+       SELECT id,send_email,send_time,send_content,send_type,send_user
+       FROM email_send_record
+       WHERE send_type = #{sendType}
+    </select>
+
+    <select id="getSendRecordTypeAndTime" parameterType="java.util.Map" resultMap="SendRecordMap">
+      SELECT id,send_email,send_time,send_content,send_type,send_user
+      FROM email_send_record
+      WHERE send_type=#{sendType} AND
+      send_time BETWEEN #{startTime} AND #{endTime}
+    </select>
+</mapper>

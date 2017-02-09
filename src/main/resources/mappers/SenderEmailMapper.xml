@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alert.mapper.SenderEmailMapper">
+
+    <resultMap id="SenderEmailMap" type="com.alert.domain.SenderEmail">
+        <id column="id" property="id"/>
+        <result column="email" property="email"/>
+        <result column="password" property="password"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <insert id="addSenderEmail" parameterType="com.alert.domain.SenderEmail" useGeneratedKeys="true"
+            keyProperty="id">
+         INSERT INTO sender_email(email,password,create_time,update_time,status)
+         VALUES (#{email},#{password},CURRENT_TIMESTAMP ,CURRENT_TIMESTAMP ,1)
+    </insert>
+
+    <update id="updateSenderEmail" parameterType="com.alert.domain.SenderEmail">
+        UPDATE sender_email
+        SET
+        <if test="email!=null and email!=''">
+            email = #{email},
+        </if>
+        <if test="password!=null and password!=''">
+            password=#{password},
+        </if>
+        update_time=CURRENT_TIMESTAMP
+        WHERE id= #{id}
+    </update>
+    <update id="deleteSendEmail" parameterType="java.lang.Integer">
+      UPDATE sender_email
+      SET status = 0,update_time = CURRENT_TIMESTAMP
+      WHERE id = #{id}
+    </update>
+
+    <update id="activeSenderEmail" parameterType="java.lang.Integer">
+      UPDATE sender_email
+      SET status = 1,update_time = CURRENT_TIMESTAMP
+      WHERE id = #{id} AND status=0
+    </update>
+
+    <select id="getSenderEmailAll" resultMap="SenderEmailMap">
+       SELECT id,email,password,create_time,update_time,status
+       FROM sender_email
+    </select>
+
+    <select id="getActiveSenderAll" resultMap="SenderEmailMap">
+        SELECT id,email,password,create_time,update_time,status
+        FROM sender_email
+        WHERE status =1
+    </select>
+
+    <select id="getSenderEmailById" parameterType="java.lang.Integer" resultMap="SenderEmailMap">
+       SELECT id,email,password,create_time,update_time,status
+       FROM sender_email
+       WHERE id = #{id} AND status = 1
+    </select>
+</mapper>

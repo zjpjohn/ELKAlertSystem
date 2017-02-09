@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <#assign base=request.contextPath />
+    <title>发送邮箱</title>
+    <meta name="keywords" content="告警系统">
+    <meta name="description" content="告警系统">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link href="/css/bootstrap.min14ed.css?v=3.3.6" rel="stylesheet">
+    <link href="/css/font-awesome.min93e3.css?v=4.4.0" rel="stylesheet">
+    <link href="/css/plugins/footable/footable.core.css" rel="stylesheet">
+    <link href="/css/animate.min.css" rel="stylesheet">
+    <link href="/css/style.min862f.css?v=4.1.0" rel="stylesheet">
+    <link href="/css/ui-dialog.css" rel="stylesheet" type="text/css"/>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>添加发送邮箱</h5>
+                </div>
+                <div class="ibox-content">
+                    <form role="form" class="form-inline" style="display:inline;" id="senderEmailForm">
+                        <div class="form-group">
+                            <label for="email" class="sr-only">邮箱名称</label>
+                            <input type="text" placeholder="请输入邮箱名称" id="email" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="password" class="sr-only">邮箱密码</label>
+                            <input type="text" placeholder="请输入邮箱密码" id="password" class="form-control">
+                        </div>
+                    </form>
+                    <button class="btn btn-white" type="button" style="margin-top:5px;" onclick="addSenderEmail()">添加
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>发送邮箱列表</h5>
+                    <div class="ibox-content">
+                        <table class="footable table table-stripped toggle-arrow-tiny" data-page-size="8">
+                            <thead>
+                            <tr>
+                                <th>邮箱名称</th>
+                                <th>邮箱密码</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <#if code==500>
+                                <div class="center">${result!''}</div>
+                            </#if>
+                            <#if code==200>
+                                <tbody>
+                                <#if senderEmails??>
+                                    <#list senderEmails as senderEmail>
+                                        <tr>
+                                            <td>${senderEmail.email}</td>
+                                            <td>${senderEmail.password}</td>
+                                            <td>${senderEmail.createTime?string("yyyy-MM-dd HH:mm:ss")}</td>
+                                            <td>
+                                                <#if senderEmail.status = 1>
+                                                    <button onclick="updateEmail('${senderEmail.id}')"><i
+                                                            class="fa fa-check text-navy"></i> 编辑
+                                                    </button>
+                                                    <button onclick="deleteEmail('${senderEmail.id}')"><i
+                                                            class="fa fa-check text-navy"></i> 删除
+                                                    </button>
+                                                </#if>
+                                                <#if senderEmail.status = 0>
+                                                    <button onclick="activeEmail('${senderEmail.id}')"><i
+                                                            class="fa fa-check text-navy"></i> 已删除,激活
+                                                    </button>
+                                                </#if>
+                                            </td>
+                                        </tr>
+                                    </#list>
+                                </#if>
+                                </tbody>
+                            </#if>
+                            <tfoot>
+                            <tr>
+                                <td colspan="5">
+                                    <ul class="pagination pull-right"></ul>
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/js/jquery.min.js?v=2.1.4"></script>
+<script src="/js/bootstrap.min.js?v=3.3.6"></script>
+<script src="/js/plugins/footable/footable.all.min.js"></script>
+<script src="/js/content.min.js?v=1.0.0"></script>
+<script src="/js/dialog-min.js"></script>
+<script src="/js/sessionOut.js"></script>
+<script>
+    $(function () {
+    });
+
+    //激活邮箱
+    function activeEmail(id) {
+        var url = "/sender/active/" + id;
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '激活邮箱成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href = '/sender/query';
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '激活邮箱失败',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+    //添加邮箱
+    function addSenderEmail() {
+        var email = $("#email").val();
+        var password = $("#password").val();
+        $.ajax({
+            type: 'get',
+            url: '/sender/add?email=' + email + "&password=" + password,
+            async: false,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '添加邮箱成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href = '/sender/query';
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '添加邮箱失败',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+    /**
+     * 更新邮箱
+     * @param id
+     */
+    function updateEmail(id) {
+        var url = "/sender/updateInfo/" + id;
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var emailInfo = dialog({
+                        title: '更新邮箱',
+                        content: '<form role="form" class="form-horizontal" id="emailInfoForm">' +
+                        '<div class="form-group">' +
+                        '   <label for="email" class="col-sm-4 control-label">邮箱名称:</label>' +
+                        '   <div class="col-sm-7">' +
+                        '     <input id="id" name="id" type="hidden" value="' + resp.data.id + '">' +
+                        '     <input type="text" placeholder="请输入邮箱名称" name="email" id="email" class="form-control" value="' + resp.data.email + '">' +
+                        '   </div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                        '   <label for="password" class="col-sm-4 control-label">邮箱密码:</label>' +
+                        '   <div class="col-sm-7">' +
+                        '     <input type="text" placeholder="请输入邮箱密码" name="password" id="password" class="form-control" value="' + resp.data.password + '">' +
+                        '   </div>' +
+                        '</div>' +
+                        '</form>',
+                        width: 350,
+                        height: 100,
+                        ok: function () {
+                            $.ajax({
+                                type: 'post',
+                                url: '/sender/update',
+                                data: $("#emailInfoForm").serialize(),
+                                success: function (data) {
+                                    if (data.code == 200) {
+                                        var success = dialog({
+                                            title: '更新邮箱信息成功',
+                                            content: resp.msg,
+                                            width: '200px',
+                                            height: '30px',
+                                            ok: function () {
+                                                window.location.href = '/sender/query';
+                                                return true;
+                                            }
+                                        });
+                                        success.show();
+                                    } else {
+                                        var error = dialog({
+                                            title: '更新邮箱失败',
+                                            content: resp.msg,
+                                            width: '200px',
+                                            height: '30px',
+                                            ok: function () {
+                                                return true;
+                                            }
+                                        });
+                                        error.show();
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    emailInfo.show();
+                } else {
+                    var error = dialog({
+                        title: '加载邮箱信息失败',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+
+    /**
+     * 删除邮箱
+     * @param id
+     */
+    function deleteEmail(id) {
+        var url = "/sender/delete/" + id;
+        $.ajax({
+            type: 'get',
+            url: url,
+            success: function (resp) {
+                if (resp.code == 200) {
+                    var success = dialog({
+                        title: '删除邮箱成功',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            window.location.href = '/sender/query';
+                            return true;
+                        }
+                    });
+                    success.show();
+                } else {
+                    var error = dialog({
+                        title: '删除邮箱失败',
+                        content: resp.msg,
+                        width: '200px',
+                        height: '30px',
+                        ok: function () {
+                            return true;
+                        }
+                    });
+                    error.show();
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>

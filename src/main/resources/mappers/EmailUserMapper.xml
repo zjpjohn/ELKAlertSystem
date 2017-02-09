@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alert.mapper.EmailUserMapper">
+
+    <resultMap id="EmailUserMap" type="com.alert.domain.EmailUser">
+        <id column="id" property="id"/>
+        <result column="user_name" property="userName"/>
+        <result column="email" property="email"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <insert id="addEmailUser" parameterType="com.alert.domain.EmailUser" useGeneratedKeys="true" keyProperty="id">
+       INSERT INTO email_user(user_name,email,create_time,update_time,status)
+       VALUES (#{userName},#{email},CURRENT_TIMESTAMP ,CURRENT_TIMESTAMP ,1)
+    </insert>
+
+    <update id="updateEmailUser" parameterType="com.alert.domain.EmailUser">
+        UPDATE email_user
+        SET
+        <if test="userName!=null and userName!=''">
+            user_name = #{userName},
+        </if>
+        <if test="email!=null and email!=''">
+            email=#{email},
+        </if>
+        update_time = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteEmailUser" parameterType="java.lang.Integer">
+        UPDATE email_user
+        SET status = 0,update_time = CURRENT_TIMESTAMP
+        WHERE id=#{id};
+        DELETE FROM business_user_relation
+        WHERE user_id = #{id};
+    </delete>
+
+    <update id="activeEmailUser" parameterType="java.lang.Integer">
+        UPDATE email_user
+        SET status = 1,update_time = CURRENT_TIMESTAMP
+        WHERE id=#{id} AND status=0
+    </update>
+
+    <select id="getEmailUserAll" resultMap="EmailUserMap">
+        SELECT  id,user_name,email,create_time,update_time,status
+        FROM email_user
+    </select>
+
+    <select id="getEmailUserById" parameterType="java.lang.Integer" resultMap="EmailUserMap">
+       SELECT  id,user_name,email,create_time,update_time,status
+       FROM email_user
+       WHERE id = #{id}
+    </select>
+
+    <select id="getEmailUserByName" parameterType="java.lang.String" resultMap="EmailUserMap">
+       SELECT  id,user_name,email,create_time,update_time,status
+       FROM email_user
+       WHERE user_name = #{userName}
+    </select>
+
+    <select id="getEmailUserByEmail" parameterType="java.lang.String" resultMap="EmailUserMap">
+       SELECT  id,user_name,email,create_time,update_time,status
+       FROM email_user
+       WHERE email = #{email}
+    </select>
+
+    <select id="getEmailUserByTypeId" parameterType="java.lang.Integer" resultMap="EmailUserMap">
+       SELECT  u.id,u.user_name,u.email,u.create_time,u.update_time,u.status
+       FROM email_user u ,business_user_relation tu
+       WHERE tu.business_id = #{businessId} AND tu.user_id = u.id
+    </select>
+
+    <select id="getUnbindEmailUser" parameterType="java.lang.Integer" resultMap="EmailUserMap">
+       SELECT  id,user_name,email,create_time,update_time,status
+       FROM email_user
+       WHERE id NOT IN (
+           SELECT  u.id
+           FROM email_user u ,business_user_relation tu
+           WHERE tu.business_id = #{businessId} AND tu.user_id = u.id
+       )
+       AND status = 1
+    </select>
+
+    <select id="getEmailUserByType" parameterType="java.lang.String" resultMap="EmailUserMap">
+       SELECT  u.id,u.user_name,u.email,u.create_time,u.update_time,u.status
+       FROM email_user u ,business_user_relation tu,business_line m
+       WHERE m.business_name = #{businessName}
+       AND m.id=tu.business_id
+       AND tu.user_id = u.id
+    </select>
+
+    <insert id="correlateUserType" parameterType="java.util.Map" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO business_user_relation(business_id,user_id)
+        VALUES (#{businessId},#{userId})
+    </insert>
+
+    <delete id="unbindingEmailWithBusiness" parameterType="java.util.Map">
+        DELETE FROM business_user_relation
+        WHERE user_id = #{userId} AND business_id = #{businessId}
+    </delete>
+</mapper>
